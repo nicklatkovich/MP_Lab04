@@ -10,75 +10,29 @@ enum eDirections {
 	UNDEFINED,
 };
 
-unsigned int LCS_Recursion(std::string& x, std::string& y, unsigned int x_length, unsigned int y_length) {
-	if (x_length > 0 && y_length > 0) {
-		if (x[x_length - 1] == y[y_length - 1]) {
-			return 1u + LCS_Recursion(x, y, x_length - 1, y_length - 1);
-		}
-		else {
-			return std::max(
-				LCS_Recursion(x, y, x_length, y_length - 1),
-				LCS_Recursion(x, y, x_length - 1, y_length)
-			);
-		}
-	}
-	return 0;
-}
+const unsigned int S1_LENGTH = 300;
+const unsigned int S2_LENGTH = 250;
 
-unsigned int LCS_Recursion(std::string& x, std::string& y) {
-	return LCS_Recursion(x, y, x.length(), y.length());
-}
+unsigned int DENOMINATORS[] = { 25, 20, 15, 10, 5, 2, 1 };
 
-void LCS_DynamicGetContent(std::string& x, Matrix<eDirections>& direction_matrix, unsigned int n, unsigned int i, unsigned int j, std::string& result) {
-	if ((i > 0 && j > 0 && n > 0)) {
-		if (direction_matrix.Get(i, j) == LEFT_TOP) {
-			LCS_DynamicGetContent(x, direction_matrix, n - 1, i - 1, j - 1, result);
-			result[n - 1] = x[i - 1];
-			result[n] = 0;
-		}
-		else if (direction_matrix.Get(i, j) == TOP) {
-			LCS_DynamicGetContent(x, direction_matrix, n, i - 1, j, result);
-		}
-		else {
-			LCS_DynamicGetContent(x, direction_matrix, n, i, j - 1, result);
-		}
-	}
-}
-
-std::string LCS_Dynamic(std::string& x, std::string& y) {
-	Matrix<unsigned int> matrix(x.length() + 1, y.length() + 1, 0);
-	Matrix<eDirections> direction_matrix(x.length() + 1, y.length() + 1, UNDEFINED);
-	for (unsigned int i = 1; i <= x.length(); i++) {
-		for (unsigned int j = 1; j <= y.length(); j++) {
-			if (x[i - 1] == y[j - 1]) {
-				matrix.Set(i, j, matrix.Get(i - 1, j - 1) + 1);
-				direction_matrix.Set(i, j, LEFT_TOP);
-			}
-			else if (matrix.Get(i - 1, j) >= matrix.Get(i, j - 1)) {
-				matrix.Set(i, j, matrix.Get(i - 1, j));
-				direction_matrix.Set(i, j, TOP);
-			}
-			else {
-				matrix.Set(i, j, matrix.Get(i, j - 1));
-				direction_matrix.Set(i, j, LEFT);
-			}
-		}
-	}
-	unsigned int length = matrix.Get(x.length(), y.length());
-	std::string result;
-	for (unsigned int i = 0; i <= length; i++) {
-		result.push_back('\0');
-	}
-	LCS_DynamicGetContent(x, direction_matrix, length, x.length(), y.length(), result);
-	return result;
-}
 
 int main() {
-	std::string s1 = "TBHDSAV";
-	std::string s2 = "KIBYSV";
-	std::cout << s1 << std::endl;
-	std::cout << s2 << std::endl;
-	std::cout << "LCS = " << LCS_Dynamic(s1, s2) << std::endl;
+	std::string s1 = GenerateRandomString(S1_LENGTH);
+	std::string s2 = GenerateRandomString(S2_LENGTH);
+	for (unsigned int i = 0; i < sizeof(DENOMINATORS) / sizeof(*DENOMINATORS); i++) {
+		unsigned int s1_length = S1_LENGTH / DENOMINATORS[i];
+		unsigned int s2_length = S2_LENGTH / DENOMINATORS[i];
+		std::string s1_cutted = GetCutted(s1, s1_length);
+		std::string s2_cutted = GetCutted(s2, s2_length);
+		std::cout << s1_cutted << std::endl;
+		std::cout << s2_cutted << std::endl;
+		time_t startTime = clock();
+		unsigned int lcs = LCS_Recursive(s1_cutted, s2_cutted);
+		unsigned int lcs = LCS_Dynamic(s1_cutted, s2_cutted).length();
+		time_t endTime = clock();
+		std::cout << "      LCS = " << lcs << std::endl;
+		std::cout << "Used Time = " << endTime - startTime << " y.e." << std::endl;
+	}
 
 #ifdef _DEBUG
 	getchar();
